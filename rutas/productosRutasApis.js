@@ -67,7 +67,7 @@ ruta.get("/api/borrarProductoN/:id", async (req, res)=>{
             res.status(200).json("Producto borrado");
     }
     else{
-        res.status(400),json("Error al borrar el producto");
+        res.status(400).json("Error al borrar el producto");
     } }
     catch(error){
         console.error("Error al borrar el producto", error);
