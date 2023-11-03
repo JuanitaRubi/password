@@ -1,11 +1,12 @@
 var conexion=require("./conexion").conexion;
 var Usuario=require("../modelos/Usuarios");
+var crypto=require("crypto")
+var {encriptarPassword}=require("../middlewares/funcionesPassword")
 
 async function mostrarUsuarios(){
     var users=[];
     try{
     var usuarios=await conexion.get();
-
     usuarios.forEach((usuario) => {
         var user=new Usuario(usuario.id, usuario.data());
           if (user.bandera == 0){
@@ -36,6 +37,10 @@ async function mostrarUsuarios(){
   }
 
   async function nuevoUsuario(datos){
+    var {hash, salt}=encriptarPassword(datos.password);
+    datos.password=hash;
+    datos.salt=salt;
+    datos.admin=false;
     var user=new Usuario(null, datos);
     console.log(user);
     var error=1;
@@ -57,6 +62,14 @@ async function mostrarUsuarios(){
     var error=1;
     var respuestaBuscar=await buscarPorID(datos.id);
     if (respuestaBuscar!=undefined){
+      if (datos.password=="") {
+        datos.password=datos.passwordViejo;
+        datos.salt=datos.saltViejo;
+      }else{
+        var{salt, hash}=encriptarPassword(datos.password);
+        datos.password=hash;
+        datos.salt=salt;
+      }
     var user=new Usuario(datos.id, datos);
     var error=1;
     if (user.bandera==0){
@@ -89,6 +102,27 @@ async function mostrarUsuarios(){
   return error;
 }
 
+async function buscarPorUsuario(usuario){
+  var user="";
+  try{
+    var usuarios=await conexion.where("usuario", "==", usuario).get();
+    usuarios.forEach((usuario)=>{
+      var usuarioObjeto= new Usuario(usuario.id, usuario.data());
+      if (usuarioObjeto.bandera==0) {
+        user=usuarioObjeto.obtenerDatos;
+      }
+    });
+  }catch(err){
+    console.log("Error al recuperar usuario"+err);
+  }
+  return user;
+}
+
+async function verificarPassword(password, hash, salt){
+  var hashEvaluar=crypto.scryptSync(password,salt,100000,64, 'sha512').toString('hex');
+  return hashEvaluar === hash;      
+}
+
 
   module.exports={
     mostrarUsuarios,
@@ -96,6 +130,8 @@ async function mostrarUsuarios(){
     nuevoUsuario,
     modificaUsuario,
     borrarUsuario,
+    buscarPorUsuario,
+    verificarPassword
   };
 
 

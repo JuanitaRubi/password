@@ -1,17 +1,25 @@
 var ruta=require("express").Router();
-var {mostrarUsuarios, nuevoUsuario, modificaUsuario, buscarPorID, borrarUsuario}=require("../bd/usuariosBD");
+var {mostrarUsuarios, nuevoUsuario, modificaUsuario, buscarPorID,
+     borrarUsuario, buscarPorUsuario, verificarPassword}=require("../bd/usuariosBD");
 var fs=require("fs");
 var subirArchivo=require("../middlewares/subirArchivos");
+var {autorizado, admin}=require("../middlewares/funcionesPassword");
 
 
-ruta.get("/",async(req, res)=>{
-    var usuarios = await mostrarUsuarios();
-    //console.log(usuarios); //esta insturccion fue solo para saber que si hay conexion o manda alguna informacion 
-    res.render("usuarios/mostrar",{usuarios});
-
+ruta.get("/usuarios", autorizado,async(req, res)=>{
+    var usuarios=await mostrarUsuarios();
+    res.render("usuarios/mostrar", {usuarios});
 });
 
-ruta.get("/nuevousuario",async (req, res)=>{
+ruta.get("/", async(req, res)=>{
+    res.render("usuarios/login");
+});
+
+ruta.get("/mostrarUsuarios", autorizado, async(req, res)=>{
+    res.render("usuarios/mostrar", {usuarios});
+});
+
+ruta.get("/nuevousuario", async(req, res)=>{
     res.render("usuarios/nuevo");
 });
 
@@ -30,9 +38,22 @@ ruta.get("/editar/:id",async(req, res)=>{
 });
 
 ruta.post("/editar", subirArchivo(), async(req, res)=>{
-    req.body.foto=req.file.originalname;
-    var error=await modificaUsuario(req.body);
-    res.redirect("/");
+    try{
+        const usuarioAct=await buscarPorID(req.body.id);
+        if (req.file) {
+            req.body.foto=req.file.originalname;
+            if (usuarioAct.foto) {
+                const rutaFotoAnterior=`web/images${usuarioAct.foto}`;
+               fs.unlinkSync(rutaFotoAnterior);
+            }}else{
+            req.body.foto=req.body.fotoVieja;
+        }
+        await modificaUsuario(req.body);
+        res.redirect("/");
+    }catch(error){
+        console.error("Error al editar registro", error);
+        res.status(500).send("Error interno de servidor");
+    }    
 });
 
 ruta.get("/borrar/:id", async(req, res)=>{
@@ -43,6 +64,39 @@ ruta.get("/borrar/:id", async(req, res)=>{
     await borrarUsuario(req.params.id);
     }
     res.redirect("/")
+});
+
+ruta.get("/login", (req, res)=>{
+    res.render("usuarios/login");
+});  
+
+ruta. post ("/login", async(req, res)=>{
+    var {usuario, password}=req.body;
+    var usuarioEncontrado=await buscarPorUsuario(usuario);
+    if (usuarioEncontrado) {
+        var passwordCorrecto=await verificarPassword(password, usuarioEncontrado.password, usuarioEncontrado.salt);
+        if (passwordCorrecto) {
+            if (usuarioEncontrado.admin) {
+                req.session.admin=usuarioEncontrado.admin;
+                //res.redirect("/");
+                res.redirect("/nuevoproducto");
+            }else{
+                req.session.usuario=usuarioEncontrado.usuario;
+                res.redirect("/usuarios");
+            }
+        }else{
+            console.log("Usuario o contraseña incorrectos");
+            res.render("usuarios/login");
+        }
+    }else{
+        console.log("Usuario o contraseña incorrectos");
+        res.render("usuarios/login");
+    }
+});
+
+ruta.get("/logout", (req, res)=>{
+    req.session=null;
+    res.redirect("/");
 });
 
 module.exports=ruta;

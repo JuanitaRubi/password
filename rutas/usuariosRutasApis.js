@@ -1,5 +1,6 @@
 var ruta=require("express").Router();
-var { mostrarUsuarios, nuevoUsuario, buscarPorID, modificaUsuario, borrarUsuario }=require("../bd/usuariosBD");
+var { mostrarUsuarios, nuevoUsuario, buscarPorID, modificaUsuario,
+     borrarUsuario }=require("../bd/usuariosBD");
 const subirArchivo = require("../middlewares/subirArchivos");
 var fs=require("fs");
 

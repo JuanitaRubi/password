@@ -1,19 +1,21 @@
 var ruta = require("express").Router();
 var fs=require("fs")
-var { mostrarProductos, nuevoProducto, modificarProducto, buscarProductoPorID, borrarProducto } = require("../bd/productosBD");
-//var subirArchivo=require("../middlewares/subirArchivos");
+var { mostrarProductos, nuevoProducto, modificarProducto,
+     buscarProductoPorID, borrarProducto } = require("../bd/productosBD");
+var subirArchivo=require("../middlewares/subirArchivos");
+const {admin}=require("../middlewares/funcionesPassword");
 
 ruta.get("/productos", async (req, res) => {
     var productos = await mostrarProductos();
     res.render("productos/mostrar", { productos });
 });
 
-ruta.get("/nuevoproducto", async (req, res) => {
+ruta.get("/nuevoproducto", admin, async (req, res) => {
     res.render("productos/nuevo");
 });
 
-ruta.post("/nuevoproducto", async (req, res) => {
-   // req.body.foto=req.file.originalname;
+ruta.post("/nuevoproducto", subirArchivo(), async (req, res) => {
+   req.body.foto=req.file.originalname;
     var error = await nuevoProducto(req.body);
     res.redirect("/productos");
 });
@@ -23,21 +25,21 @@ ruta.get("/editarProducto/:id", async (req, res) => {
     res.render("productos/modificar", { producto });
 });
 
-ruta.post("/editarProducto", /*subirArchivo(),*/ async (req, res) => {
-   /* try{
+ruta.post("/editarProducto", subirArchivo(), async (req, res) => {
+    try{
        const productoAct=await buscarProductoPorID(req.body.id);
         if(req.file){
             req.body.foto=req.file.originalname;
             if(productoAct.foto){
                 const rutaFotoAnterior=`web/images/${productoAct.foto}`;
                 fs.unlinkSync(rutaFotoAnterior);
-            } }    */   
+            } }     
     var error = await modificarProducto(req.body);
-    res.redirect("/productos");/*}
+    res.redirect("/productos");}
     catch(error){
         console.error("Error al editar producto", error);
         res.status(500).send("Error interno del servidor");
-    }*/
+    }
 });
 
 ruta.get("/borrarProducto/:id", async (req, res) => {

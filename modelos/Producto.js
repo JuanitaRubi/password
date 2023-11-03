@@ -5,6 +5,8 @@ class Producto {
         this.nombre = data.nombre;
         this.stock = data.stock;
         this.precio = data.precio;
+       // this.desc = data.desc;
+        this.foto = data.foto;
     }
 
     set id(id) {
@@ -24,6 +26,14 @@ class Producto {
         precio.length > 0 ? this._precio = precio : this.bandera = 1;
     }
 
+    /*set desc(desc){
+        desc.length >= 0 ? this._desc = desc : this.bandera = 1;
+    }*/
+
+    set foto(foto){
+        foto.length >0 ? this._foto = foto : this.bandera = 1;
+    }
+
     get id() {
         return this._id;
     }
@@ -40,6 +50,14 @@ class Producto {
         return this._precio;
     }
 
+   /* get desc() {
+        return this._desc;
+    }*/
+
+    get foto(){
+        return this._foto;
+    }
+
     obtenerDatosP() {
         if (this._id != null)
             return {
@@ -47,12 +65,16 @@ class Producto {
                 nombre: this.nombre,
                 stock: this.stock,
                 precio: this.precio,
+                //desc: this.desc,
+                foto: this.foto,
             };
         else {
             return {
                 nombre: this.nombre,
                 stock: this.stock,
                 precio: this.precio,
+                //desc: this.desc,
+                foto: this.foto,
             };
         }
     }

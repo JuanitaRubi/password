@@ -8,34 +8,25 @@ async function mostrarProductos(){
         var productos=await conexion.get();
         productos.forEach((producto) => {
             var product=new Producto(producto.id, producto.data());
-            if (product.bandera === 0){
-                products.push(product.obtenerDatosP());
-              
-            }
-            
+            if (product.bandera == 0){
+                products.push(product.obtenerDatosP());              
+            }            
         });  
-
+    }catch(err){
+        console.log("Error al recuperar registros de la base de datos"+err);
     }
-
-    catch(err){
-        console.log("Error al recuperar usuarios de la base de datos"+err);
-
-    }
-
-    return products;
- 
+    return products; 
 }
 
 async function buscarProductoPorID(id){
     var product="";
-
     try {
         var producto=await conexion.doc(id).get();
         var productoObjeto=new Producto(producto.id, producto.data());
-        if (productoObjeto.bandera === 0){
+        if (productoObjeto.bandera == 0){
             product=productoObjeto.obtenerDatosP();
             console.log(product);
-        }
+            }
     }
     catch(err){
         console.log("Error al recuperar al producto" + err);        
@@ -45,7 +36,7 @@ async function buscarProductoPorID(id){
 async function nuevoProducto(datos){
     var product=new Producto(null, datos);
     var error=1;
-    if (product.bandera === 0){
+    if (product.bandera == 0){
     try{
         console.log(product.obtenerDatosP());
         await conexion.doc().set(product.obtenerDatosP());
@@ -59,7 +50,7 @@ async function nuevoProducto(datos){
 }
 
 async function modificarProducto(datos){
-    var error=1
+    var error=1;
     var respuestaBuscarProducto=await buscarProductoPorID(datos.id);
     if(respuestaBuscarProducto!=undefined){
     var product=new Producto(datos.id,datos)
@@ -69,7 +60,6 @@ async function modificarProducto(datos){
             await conexion.doc(product.id).set(product.obtenerDatosP());
             console.log("Producto actualizado");
             error=0;
-
         }
         catch(err){
             console.log("Error al modificar el producto"+err);
@@ -100,5 +90,5 @@ module.exports={
     buscarProductoPorID,
     nuevoProducto,
     modificarProducto,
-    borrarProducto
-}
+    borrarProducto,
+};

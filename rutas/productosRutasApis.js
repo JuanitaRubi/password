@@ -1,7 +1,8 @@
 var ruta=require("express").Router();
 //const { json } = require("express");
-var{ mostrarProductos, nuevoProducto, modificarProducto, borrarProducto, buscarProductoPorID }=require("../bd/productosBD");
-const subirArchivo=require("../middlewares/subirArchivos");
+var{ mostrarProductos, nuevoProducto, modificarProducto,
+     borrarProducto, buscarProductoPorID }=require("../bd/productosBD");
+var subirArchivo=require("../middlewares/subirArchivos");
 var fs=require("fs");
 
 
